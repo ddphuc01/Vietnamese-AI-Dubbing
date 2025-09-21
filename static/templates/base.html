@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vietnamese AI Dubbing{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        {% block header %}
+        <div class="header">
+            <h1><i class="fas fa-film"></i> Vietnamese AI Dubbing</h1>
+            <p>Công cụ lồng tiếng video tự động sang tiếng Việt</p>
+        </div>
+        {% endblock %}
+
+        {% block content %}
+        <!-- Main content goes here -->
+        {% endblock %}
+
+        {% block footer %}
+        <div class="footer">
+            <p>
+                Made with <i class="fas fa-heart" style="color: #ff6b6b;"></i> for Vietnamese AI Community |
+                <a href="https://github.com/your-username/Vietnamese-AI-Dubbing" target="_blank">
+                    <i class="fab fa-github"></i> GitHub
+                </a>
+            </p>
+        </div>
+        {% endblock %}
+    </div>
+
+    <script src="/static/js/main.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
