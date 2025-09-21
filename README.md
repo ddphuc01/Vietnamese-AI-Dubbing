@@ -90,6 +90,11 @@ cp .env.example .env
 nano .env  # hoặc notepad .env
 ```
 
+**Lưu ý quan trọng:**
+- File `.env` chứa thông tin nhạy cảm (API keys) và đã được thêm vào `.gitignore`
+- Không commit file `.env` lên GitHub để tránh rò rỉ thông tin
+- Chỉ commit file `.env.example` làm template mẫu
+
 **Nội dung .env cần thiết:**
 
 ```env
@@ -288,9 +293,9 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📞 Liên hệ
 
-- **GitHub Issues**: [Báo lỗi/đề xuất](https://github.com/your-username/Vietnamese-AI-Dubbing/issues)
+- **GitHub Issues**: [Báo lỗi/đề xuất](https://github.com/ddphuc01/Vietnamese-AI-Dubbing/issues)
 - **Discord**: *Link sẽ được cập nhật*
-- **Email**: your-email@example.com
+- **Email**: ddphuc01@gmail.com
 
 ---
 
