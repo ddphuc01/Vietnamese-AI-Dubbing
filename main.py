@@ -7,7 +7,6 @@ Công cụ lồng tiếng video tự động sang tiếng Việt
 import os
 import sys
 from pathlib import Path
-import logging
 from typing import Optional, Dict, Any
 
 # Add current directory to path
@@ -20,27 +19,15 @@ from modules.speech_recognition import speech_recognizer
 from modules.translator import translator
 from modules.text_to_speech import text_to_speech
 from modules.video_processor import video_processor
+from utils.logger import setup_logging
+
+# Specific imports for error handling and functionality
+from moviepy.editor import VideoFileClip
+from pydub import AudioSegment
+from pydub.exceptions import PyDubError
 
 # Setup logging
-log_file_path = Path(settings.LOG_DIR) / 'vietnamese_dubbing.log'
-handlers = [logging.StreamHandler(sys.stdout)]
-
-try:
-    # Ensure the log directory exists
-    log_file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
-    handlers.append(file_handler)
-except (IOError, OSError) as e:
-    # Log an error to the console if file logging fails
-    sys.stderr.write(f"WARNING: Could not set up file logger at {log_file_path}: {e}\n")
-    sys.stderr.write("WARNING: Logging will proceed to console only.\n")
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=handlers
-)
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__, log_file_name='vietnamese_dubbing.log')
 
 class VietnameseAIDubbing:
     """Main class orchestrating the AI dubbing pipeline"""
@@ -193,8 +180,8 @@ class VietnameseAIDubbing:
 
     def _extract_audio_from_video(self, video_path: str) -> str:
         """Extract audio từ video sử dụng ffmpeg"""
-        from moviepy import VideoFileClip
-        import os
+        # from moviepy import VideoFileClip # Moved to top
+        # import os # Moved to top
 
         audio_path = str(Path(settings.TEMP_DIR) / f"{Path(video_path).stem}_audio.wav")
 
@@ -203,16 +190,16 @@ class VietnameseAIDubbing:
             video.audio.write_audiofile(audio_path)
             video.close()
             return audio_path
-        except Exception as e:
+        except (IOError, OSError, Exception) as e: # Catch more specific errors
             logger.error(f"Lỗi extract audio: {str(e)}")
-            raise
+            raise RuntimeError(f"Không thể extract audio từ video: {e}") # Raise a more specific error
 
     def _create_vietnamese_audio(self, segments: list, voice_name: str) -> str:
         """Tạo audio tiếng Việt từ segments"""
         try:
             # Create single audio file by concatenating segments
-            from pydub import AudioSegment
-            import os
+            # from pydub import AudioSegment # Moved to top
+            # import os # Moved to top
 
             combined_audio = AudioSegment.empty()
 
@@ -240,9 +227,12 @@ class VietnameseAIDubbing:
 
             return output_path
 
+        except PyDubError as e: # Catch pydub specific error
+            logger.error(f"Lỗi tạo Vietnamese audio (PyDubError): {str(e)}")
+            raise RuntimeError(f"Không thể tạo audio tiếng Việt: {e}") # Raise a more specific error
         except Exception as e:
             logger.error(f"Lỗi tạo Vietnamese audio: {str(e)}")
-            raise
+            raise RuntimeError(f"Lỗi không xác định khi tạo audio tiếng Việt: {e}") # Catch other exceptions
 
     def _create_subtitle_file(self, segments: list) -> str:
         """Tạo file subtitle từ translated segments"""

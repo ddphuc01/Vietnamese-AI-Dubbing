@@ -11,29 +11,11 @@ from main import VietnameseAIDubbing
 from config.settings import settings
 from modules.translator import translator
 from modules.text_to_speech import text_to_speech
-import logging
+# import logging # Remove this
+from utils.logger import setup_logging # Add this
 
-# Ensure logging is configured for web UI
-log_file_name = os.getenv('LOG_FILENAME', 'webui_dubbing.log') # Default if not set
-log_file_path = Path(settings.LOG_DIR) / log_file_name
-handlers = [logging.StreamHandler(sys.stdout)] # Explicitly log to stdout for console output
-
-try:
-    # Ensure the log directory exists
-    log_file_path.parent.mkdir(parents=True, exist_ok=True)
-    file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
-    handlers.append(file_handler)
-except (IOError, OSError) as e:
-    sys.stderr.write(f"WARNING: Could not set up file logger at {log_file_path}: {e}\n")
-    sys.stderr.write("WARNING: Logging will proceed to console only.\n")
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=handlers
-)
-
-logger = logging.getLogger(__name__)
+# Setup logging
+logger = setup_logging(__name__, log_file_name='webui_dubbing.log') # Modify this
 
 logger.info("Web UI started - testing logging")
 print("=== WEB UI LOG TEST ===")
@@ -97,6 +79,17 @@ def preview_voice(voice_name):
         return preview_path
     except Exception as e:
         return f"❌ Lỗi tạo preview: {str(e)}"
+
+# Function to read log file
+def read_log_file():
+    log_file_path = Path(settings.LOG_DIR) / 'webui_dubbing.log' # Or 'vietnamese_dubbing.log'
+    try:
+        with open(log_file_path, 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return "Log file not found."
+    except Exception as e:
+        return f"Error reading log file: {e}"
 
 # Tạo Gradio interface
 def create_ui():
@@ -273,7 +266,7 @@ Công cụ AI tự động lồng tiếng video sang tiếng Việt với chất
                 available_methods = translator.get_available_methods()
                 gr.Markdown(f"**Phương thức dịch có sẵn:** {', '.join(available_methods)}")
 
-            # Tab: Logs (nếu cần)
+            # Tab: Logs
             with gr.TabItem("📋 Logs"):
                 log_text = gr.Textbox(
                     label="Processing Logs",
@@ -281,6 +274,8 @@ Công cụ AI tự động lồng tiếng video sang tiếng Việt với chất
                     interactive=False,
                     value="Logs sẽ hiển thị ở đây khi xử lý..."
                 )
+                refresh_log_btn = gr.Button("🔄 Refresh Logs")
+                refresh_log_btn.click(read_log_file, inputs=[], outputs=[log_text])
 
     return interface
 
