@@ -24,6 +24,10 @@ class Settings:
     TEMP_DIR = os.getenv("TEMP_DIR", "./temp")
     OUTPUT_DIR = os.getenv("OUTPUT_DIR", "./output")
     MODELS_DIR = "./models"
+    LOG_DIR = os.getenv("LOG_DIR", "./logs")
+
+    # Device settings
+    DEVICE = os.getenv("DEVICE", "cpu")
 
     # TTS settings
     VIETNAMESE_VOICES = [
@@ -46,6 +50,7 @@ class Settings:
 
         # Tạo thư mục nếu chưa có
         os.makedirs(cls.TEMP_DIR, exist_ok=True)
+        os.makedirs(cls.LOG_DIR, exist_ok=True)
         os.makedirs(cls.OUTPUT_DIR, exist_ok=True)
         os.makedirs(cls.MODELS_DIR, exist_ok=True)
 

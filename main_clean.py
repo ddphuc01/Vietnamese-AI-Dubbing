@@ -55,13 +55,11 @@ class VietnameseAIDubbing:
                      voice_name: str = None,
                      output_name: str = None) -> Dict[str, Any]:
         """Process full pipeline từ video input đến output
-
         Args:
             video_input: URL hoặc path của video
             translator_method: Phương thức dịch ('gtx_free', 'openrouter', 'ollama')
             voice_name: Tên voice tiếng Việt
             output_name: Tên file output tùy chỉnh
-
         Returns:
             Dict với kết quả và metadata
         """
@@ -70,16 +68,12 @@ class VietnameseAIDubbing:
             logger.info("Bước 1: Validate inputs")
             if not video_input:
                 raise ValueError("Video input không được để trống")
-
             if translator_method is None:
                 translator_method = settings.DEFAULT_TRANSLATOR
-
             if voice_name is None:
                 voice_name = settings.DEFAULT_VOICE
-
             logger.info(f"Bắt đầu xử lý video: {video_input}")
             logger.info(f"Translator: {translator_method}, Voice: {voice_name}")
-
             # Step 1: Download/Prepare video
             logger.info("Bước 2: Download/Prepare video")
             self._update_progress("DOWNLOAD", 5, "Đang tải video...")
@@ -91,7 +85,6 @@ class VietnameseAIDubbing:
                 logger.info(f"Xử lý file upload: {video_input}")
                 video_path = video_downloader.handle_uploaded_file(video_input)
                 logger.info(f"Đã chuẩn bị video: {video_path}")
-
             # Step 2: Extract audio và tách vocals
             logger.info("Bước 3: Extract audio và tách vocals")
             self._update_progress("AUDIO_EXTRACT", 15, "Đang tách audio vocals...")
@@ -103,14 +96,12 @@ class VietnameseAIDubbing:
             logger.info(f"Đã tách vocals: {vocals_path}")
             if background_path:
                 logger.info(f"Background music: {background_path}")
-
             # Step 3: Speech recognition
             logger.info("Bước 4: Speech recognition")
             self._update_progress("TRANSCRIBE", 30, "Đang nhận dạng giọng nói...")
             logger.info(f"Transcribing audio: {vocals_path}")
             transcript = speech_recognizer.transcribe_audio(vocals_path)
             logger.info(f"Đã transcribe thành công: {len(transcript.get('segments', []))} segments")
-
             # Step 4: Translate to Vietnamese
             logger.info("Bước 5: Translate to Vietnamese")
             self._update_progress("TRANSLATE", 50, "Đang dịch sang tiếng Việt...")
@@ -121,21 +112,18 @@ class VietnameseAIDubbing:
                 method=translator_method
             )
             logger.info(f"Đã dịch thành công {len(translated_segments)} segments")
-
             # Step 5: Text-to-speech
             logger.info("Bước 6: Text-to-speech")
             self._update_progress("TTS", 70, "Đang tổng hợp giọng nói tiếng Việt...")
             logger.info(f"Generating speech với voice: {voice_name}")
             viet_audio_path = self._create_vietnamese_audio(translated_segments, voice_name)
             logger.info(f"Đã tạo Vietnamese audio: {viet_audio_path}")
-
             # Step 6: Create subtitle file
             logger.info("Bước 7: Create subtitle file")
             self._update_progress("SUBTITLES", 85, "Đang tạo phụ đề...")
             logger.info("Creating subtitle file từ translated segments")
             sub_path = self._create_subtitle_file(translated_segments)
             logger.info(f"Đã tạo subtitle file: {sub_path}")
-
             # Step 7: Combine video + audio + subtitles
             logger.info("Bước 8: Combine video + audio + subtitles")
             self._update_progress("FINALIZE", 95, "Đang tạo video final...")
@@ -145,16 +133,13 @@ class VietnameseAIDubbing:
                 vietnamese_audio_path=viet_audio_path,
                 background_audio_path=background_path,
                 subtitle_path=sub_path,
-                output_filename=output_name
-            )
+                output_filename=output_name)
             logger.info(f"Đã tạo video final: {final_video_path}")
-
             self._update_progress("COMPLETE", 100, "Hoàn thành!")
-
             # Cleanup temp files
             logger.info("Bước 9: Cleanup temp files")
             self._cleanup_temp_files()
-
+            logger.info(f"Hoàn thành pipeline thành công: {final_video_path}")
             result = {
                 "success": True,
                 "final_video": final_video_path,
@@ -167,14 +152,11 @@ class VietnameseAIDubbing:
                     "voice_used": voice_name,
                     "processing_time": "calculated_time"  # Có thể add timer
                 }
-            }
-
-            logger.info(f"Hoàn thành pipeline thành công: {final_video_path}")
+            logger.info(f"Hoàn thành xử lý: {final_video_path}")
             return result
-
         except Exception as e:
             logger.error(f"Lỗi trong pipeline: {str(e)}")
-            self._cleanup_temp_files()
+            return {
             return {
                 "success": False,
                 "error": str(e),

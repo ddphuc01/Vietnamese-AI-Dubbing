@@ -9,12 +9,24 @@ import os
 from pathlib import Path
 from main import VietnameseAIDubbing
 from config.settings import settings
+from modules.translator import translator
+from modules.text_to_speech import text_to_speech
 import logging
+
+# Ensure logging is configured for web UI
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 logger = logging.getLogger(__name__)
 
+logger.info("Web UI started - testing logging")
+print("=== WEB UI LOG TEST ===")
+
 # Khởi tạo dubbing instance
 dubbing = VietnameseAIDubbing()
+logger.info("VietnameseAIDubbing instance created")
 
 def process_video_gradio(video_input, translator_method, voice_name, output_name):
     """Function xử lý video cho Gradio interface"""
@@ -51,10 +63,10 @@ def process_video_gradio(video_input, translator_method, voice_name, output_name
             final_video = result["final_video"]
             subtitle_file = result["subtitle_file"]
 
-            # Trả về video và message thành công
+            # Trả về update để clear video component và message thành công
             return (
-                final_video,
-                f"✅ Hoàn thành!\n\n📹 Video: {os.path.basename(final_video)}\n📝 Phụ đề: {os.path.basename(subtitle_file)}"
+                gr.update(value=None),
+                f"✅ Hoàn thành!\n\n📹 Video: {os.path.basename(final_video)}\n📝 Phụ đề: {os.path.basename(subtitle_file)}\n\n📂 Tìm file trong thư mục 'output/'"
             )
         else:
             return None, f"❌ Lỗi: {result['error']}"
@@ -218,29 +230,29 @@ def create_ui():
             with gr.TabItem("ℹ️ Thông tin"):
 
                 gr.Markdown("""
-                ## Vietnamese AI Dubbing
+## Vietnamese AI Dubbing
 
-                Công cụ AI tự động lồng tiếng video sang tiếng Việt với chất lượng cao.
+Công cụ AI tự động lồng tiếng video sang tiếng Việt với chất lượng cao.
 
-                ### Tính năng chính:
-                - 🎥 **Tự động download** từ YouTube/TikTok
-                - 🎵 **Tách vocals** khỏi background music
-                - 🎤 **Nhận dạng giọng nói** với FunASR
-                - 🌐 **Dịch đa phương thức** (Google, OpenRouter, Ollama)
-                - 🔊 **Tổng hợp giọng** với EdgeTTS tiếng Việt
-                - 🎬 **Ghép video final** với phụ đề
+### Tính năng chính:
+- 🎥 **Tự động download** từ YouTube/TikTok
+- 🎵 **Tách vocals** khỏi background music
+- 🎤 **Nhận dạng giọng nói** với FunASR
+- 🌐 **Dịch đa phương thức** (Google, OpenRouter, Ollama)
+- 🔊 **Tổng hợp giọng** với EdgeTTS tiếng Việt
+- 🎬 **Ghép video final** với phụ đề
 
-                ### Cách sử dụng:
-                1. Upload video hoặc paste URL
-                2. Chọn phương thức dịch và giọng đọc
-                3. Click "Bắt đầu lồng tiếng"
-                4. Tải video kết quả
+### Cách sử dụng:
+1. Upload video hoặc paste URL
+2. Chọn phương thức dịch và giọng đọc
+3. Click "Bắt đầu lồng tiếng"
+4. Tải video kết quả
 
-                ### Lưu ý:
-                - Video quá dài có thể tốn thời gian xử lý
-                - Cần cấu hình API keys cho OpenRouter/Ollama
-                - Kết quả phụ thuộc vào chất lượng audio gốc
-                """)
+### Lưu ý:
+- Video quá dài có thể tốn thời gian xử lý
+- Cần cấu hình API keys cho OpenRouter/Ollama
+- Kết quả phụ thuộc vào chất lượng audio gốc
+""")
 
                 # Hiển thị available methods
                 available_methods = translator.get_available_methods()

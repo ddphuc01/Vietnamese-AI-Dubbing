@@ -32,10 +32,7 @@ class SpeechRecognizer:
                 self.model = AutoModel(
                     model="paraformer",
                     model_revision="v2.0.4",
-                    vad_model="fsmn-vad",
-                    punc_model="ct-punc",
-                    spk_model="cam++",
-                    device='cuda' if hasattr(settings, 'device') and settings.device == 'cuda' else 'cpu'
+                    device=settings.DEVICE
                 )
 
                 logger.info("Đã khởi tạo FunASR model cho tiếng Việt")
@@ -58,7 +55,7 @@ class SpeechRecognizer:
                     {
                         "text": "segment text",
                         "start": 0.0,
-                        "end": 2.5,
+                        "end": 0.0,  # Không có timestamp
                         "speaker": "SPEAKER_00"
                     }
                 ],
@@ -74,12 +71,10 @@ class SpeechRecognizer:
 
             logger.info(f"Đang transcribe audio: {audio_path}")
 
-            # FunASR inference
+            # FunASR inference - không dùng timestamp features
             result = self.model.generate(
                 input=str(audio_path),
                 batch_size_s=60,  # Batch size cho speed
-                return_spk_res=True,  # Trả về speaker diarization
-                return_punc_res=True,  # Thêm punctuation
             )
 
             logger.debug(f"FunASR raw result: {result}")
@@ -106,28 +101,9 @@ class SpeechRecognizer:
 
             # Extract text
             full_text = ""
-            segments = []
 
-            # Parse utterances/sentences
-            if "sentence_info" in result:
-                for sentence in result["sentence_info"]:
-                    text = sentence.get("text", "").strip()
-                    if text:
-                        # Tính timestamp (approximate)
-                        start_time = sentence.get("start", 0) / 1000  # ms to seconds
-                        end_time = sentence.get("end", 0) / 1000
-
-                        segments.append({
-                            "text": text,
-                            "start": start_time,
-                            "end": end_time,
-                            "speaker": "SPEAKER_00"  # FunASR có thể detect speakers
-                        })
-
-                        full_text += text + " "
-
-            # Fallback if no sentence_info
-            if not segments and "text" in result:
+            # Fallback: create single segment without timestamp
+            if "text" in result:
                 full_text = result["text"]
                 # Create single segment
                 segments = [{
@@ -136,6 +112,8 @@ class SpeechRecognizer:
                     "end": 0.0,  # Unknown duration
                     "speaker": "SPEAKER_00"
                 }]
+            else:
+                segments = []
 
             return {
                 "text": full_text.strip(),
@@ -178,24 +156,64 @@ class SpeechRecognizer:
         """
         try:
             segments = transcript_data.get("segments", [])
+            full_text = transcript_data.get("text", "")
+
+            # Nếu không có segments thực sự, chia text thành các subtitle hợp lý
+            if not segments or all(s.get('start', 0) == s.get('end', 0) for s in segments):
+                # Chia text thành các segment ~10 giây mỗi segment
+                words = full_text.split()
+                segment_duration = 10.0  # 10 seconds per segment
+                chars_per_second = 15  # Approximate speaking rate
+
+                new_segments = []
+                current_segment = ""
+                start_time = 0.0
+
+                for word in words:
+                    current_segment += word + " "
+                    if len(current_segment) > chars_per_second * segment_duration:
+                        end_time = start_time + len(current_segment) / chars_per_second
+                        new_segments.append({
+                            "text": current_segment.strip(),
+                            "start": start_time,
+                            "end": end_time
+                        })
+                        start_time = end_time
+                        current_segment = ""
+
+                # Add remaining text
+                if current_segment.strip():
+                    end_time = start_time + len(current_segment) / chars_per_second
+                    new_segments.append({
+                        "text": current_segment.strip(),
+                        "start": start_time,
+                        "end": end_time
+                    })
+
+                segments = new_segments if new_segments else [{
+                    "text": full_text,
+                    "start": 0.0,
+                    "end": max(5.0, len(full_text) * 0.08)
+                }]
 
             with open(output_path, 'w', encoding='utf-8') as f:
                 for i, segment in enumerate(segments, 1):
-                    start_time = self._format_timestamp(segment['start'])
-                    end_time = self._format_timestamp(segment['end'])
-                    text = segment['text']
+                    start_time = self._format_timestamp(segment.get('start', 0))
+                    end_time = self._format_timestamp(segment.get('end', segment.get('start', 0) + 5.0))
+                    text = segment.get('text', '').strip()
 
-                    if format == "srt":
-                        f.write(f"{i}\n")
-                        f.write(f"{start_time} --> {end_time}\n")
-                        f.write(f"{text}\n\n")
-                    elif format == "vtt":
-                        if i == 1:  # Header for VTT
-                            f.write("WEBVTT\n\n")
-                        f.write(f"{start_time} --> {end_time}\n")
-                        f.write(f"{text}\n\n")
+                    if text:  # Only write non-empty segments
+                        if format == "srt":
+                            f.write(f"{i}\n")
+                            f.write(f"{start_time} --> {end_time}\n")
+                            f.write(f"{text}\n\n")
+                        elif format == "vtt":
+                            if i == 1:  # Header for VTT
+                                f.write("WEBVTT\n\n")
+                            f.write(f"{start_time} --> {end_time}\n")
+                            f.write(f"{text}\n\n")
 
-            logger.info(f"Đã tạo subtitle file: {output_path}")
+            logger.info(f"Đã tạo subtitle file với {len(segments)} segments: {output_path}")
 
         except Exception as e:
             logger.error(f"Lỗi tạo subtitle file: {str(e)}")
@@ -208,9 +226,9 @@ class SpeechRecognizer:
         millis = int((seconds % 1) * 1000)
 
         if hours > 0:
-            return "02d"
+            return f"{hours:02d}:{minutes:02d}:{secs:02d},{millis:03d}"
         else:
-            return "02d"
+            return f"00:{minutes:02d}:{secs:02d},{millis:03d}"
 
 # Global instance
 speech_recognizer = SpeechRecognizer()

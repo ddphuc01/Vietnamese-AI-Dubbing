@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from moviepy.editor import VideoFileClip, AudioFileClip, CompositeAudioClip
+from moviepy import VideoFileClip, AudioFileClip, CompositeAudioClip
 from config.settings import settings
 import logging
 
@@ -33,40 +33,45 @@ class VideoProcessor:
             logger.info("Đang kết hợp video và audio...")
 
             # Load video
+            logger.info(f"Loading video: {video_path}")
             video = VideoFileClip(video_path)
+            logger.info("Video loaded successfully")
 
             # Load Vietnamese audio
+            logger.info(f"Loading Vietnamese audio: {vietnamese_audio_path}")
             viet_audio = AudioFileClip(vietnamese_audio_path)
+            logger.info("Vietnamese audio loaded successfully")
 
             # Mix audios if background exists
             if background_audio_path and os.path.exists(background_audio_path):
+                logger.info(f"Loading background audio: {background_audio_path}")
                 bg_audio = AudioFileClip(background_audio_path)
+                logger.info("Background audio loaded successfully")
 
                 # Mix Vietnamese audio với background
-                # Giả sử Vietnamese audio là main, background là phụ
+                logger.info("Mixing Vietnamese audio với background music")
                 mixed_audio = CompositeAudioClip([
-                    viet_audio.set_duration(video.duration),
-                    bg_audio.set_duration(video.duration).set_volume(0.3)  # Background nhỏ hơn
+                    viet_audio,
+                    bg_audio
                 ])
+                logger.info("Audio mixing completed")
             else:
-                mixed_audio = viet_audio.set_duration(video.duration)
+                logger.info("No background audio, using Vietnamese audio only")
+                mixed_audio = viet_audio
 
             # Set audio cho video
-            video = video.set_audio(mixed_audio)
-
-            # Burn subtitles nếu có
-            if subtitle_path and os.path.exists(subtitle_path):
-                logger.info("Đang burn subtitles vào video...")
-                # MoviePy có thể add text clips, nhưng phức tạp
-                # Sử dụng ffmpeg cho stable hơn
-                video = self._burn_subtitles(video, subtitle_path)
+            logger.info("Setting mixed audio to video")
+            video = video.with_audio(mixed_audio)
+            logger.info("Audio set to video successfully")
 
             # Tạo output filename
             if output_filename is None:
                 base_name = Path(video_path).stem
                 output_filename = f"{base_name}_vietnamese_dubbed.mp4"
+                logger.info(f"Generated output filename: {output_filename}")
 
             output_path = self.output_dir / output_filename
+            logger.info(f"Output path: {output_path}")
 
             # Export video
             logger.info(f"Đang export video final: {output_path}")
@@ -74,52 +79,24 @@ class VideoProcessor:
                 str(output_path),
                 codec='libx264',
                 audio_codec='aac',
-                temp_audiofile=str(self.temp_dir / "temp_audio.m4a"),
-                remove_temp=True,
                 fps=24
             )
 
             # Cleanup
+            logger.info("Cleaning up resources")
             video.close()
             viet_audio.close()
             if background_audio_path:
                 bg_audio.close()
+            logger.info("Cleanup completed")
 
             logger.info(f"Đã tạo video final thành công: {output_path}")
+
             return str(output_path)
 
         except Exception as e:
             logger.error(f"Lỗi kết hợp video: {str(e)}")
             raise Exception(f"Không thể tạo video final: {str(e)}")
-
-    def _burn_subtitles(self, video_clip, subtitle_path: str):
-        """Burn subtitles vào video sử dụng ffmpeg"""
-        try:
-            # Sử dụng ffmpeg để burn subtitles
-            import subprocess
-
-            # Tạo temp video path
-            temp_video = self.temp_dir / "temp_video_with_subs.mp4"
-
-            # FFmpeg command để burn subtitles
-            cmd = [
-                'ffmpeg',
-                '-i', str(video_clip.filename),  # Input video
-                '-vf', f"subtitles={subtitle_path}:force_style='FontSize=24,PrimaryColour=&HFFFFFF&,OutlineColour=&H000000&'",
-                '-c:v', 'libx264',
-                '-c:a', 'copy',
-                '-y',  # Overwrite
-                str(temp_video)
-            ]
-
-            subprocess.run(cmd, check=True, capture_output=True)
-
-            # Load video mới với subtitles
-            return VideoFileClip(str(temp_video))
-
-        except Exception as e:
-            logger.warning(f"Không thể burn subtitles: {str(e)}, tiếp tục without subtitles")
-            return video_clip
 
     def add_soft_subtitles(self, video_path: str, subtitle_path: str,
                           output_filename: str = None) -> str:
@@ -155,50 +132,6 @@ class VideoProcessor:
         except Exception as e:
             logger.error(f"Lỗi thêm soft subtitles: {str(e)}")
             raise
-
-    def optimize_video(self, video_path: str, target_size_mb: int = None,
-                      target_resolution: tuple = None) -> str:
-        """Tối ưu video: giảm size, resolution nếu cần
-
-        Args:
-            video_path: Video input
-            target_size_mb: Kích thước mục tiêu (MB)
-            target_resolution: Resolution mục tiêu (width, height)
-
-        Returns:
-            str: Đường dẫn video optimized
-        """
-        try:
-            video = VideoFileClip(video_path)
-
-            # Resize nếu cần
-            if target_resolution:
-                width, height = target_resolution
-                video = video.resize(width=width, height=height)
-
-            # Tạo output filename
-            base_name = Path(video_path).stem
-            output_filename = f"{base_name}_optimized.mp4"
-            output_path = self.output_dir / output_filename
-
-            # Export với compression
-            video.write_videofile(
-                str(output_path),
-                codec='libx264',
-                audio_codec='aac',
-                bitrate='800k',  # Low bitrate for smaller size
-                fps=24,
-                preset='medium'
-            )
-
-            video.close()
-
-            logger.info(f"Đã optimize video: {output_path}")
-            return str(output_path)
-
-        except Exception as e:
-            logger.error(f"Lỗi optimize video: {str(e)}")
-            return video_path
 
 # Global instance
 video_processor = VideoProcessor()

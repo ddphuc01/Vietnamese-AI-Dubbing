@@ -36,6 +36,15 @@ class VideoDownloader:
                 ydl_opts['outtmpl'] = str(self.temp_dir / f"{output_filename}.%(ext)s")
 
             logger.info(f"Đang tải video từ: {url}")
+            logger.info("Extracting video info...")
+
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                logger.info("Video info extracted, starting download...")
+                filename = ydl.prepare_filename(info)
+
+            logger.info(f"Đã tải video thành công: {filename}")
+            logger.info(f"Đang tải video từ: {url}")
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 info = ydl.extract_info(url, download=True)

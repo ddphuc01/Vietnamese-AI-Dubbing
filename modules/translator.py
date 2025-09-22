@@ -1,5 +1,5 @@
 import requests
-from googletrans import Translator as GoogleTranslator
+from deep_translator import GoogleTranslator as DeepGoogleTranslator
 from openai import OpenAI
 from config.settings import settings
 import logging
@@ -10,7 +10,7 @@ class Translator:
     """Module dịch văn bản với fallback system"""
 
     def __init__(self):
-        self.google_translator = GoogleTranslator()
+        self.google_translator = DeepGoogleTranslator
         self.openai_client = None
         self.ollama_available = self._check_ollama()
 
@@ -51,11 +51,11 @@ class Translator:
 
         # Thêm fallback methods nếu method chính fail
         if method == "gtx_free":
-            methods_to_try.extend(["openrouter", "ollama"])
+            methods_to_try.extend(["ollama"])
         elif method == "openrouter":
             methods_to_try.extend(["gtx_free", "ollama"])
         elif method == "ollama":
-            methods_to_try.extend(["gtx_free", "openrouter"])
+            methods_to_try.extend(["gtx_free"])
 
         for attempt_method in methods_to_try:
             try:
@@ -77,12 +77,9 @@ class Translator:
     def _translate_gtx_free(self, text: str, target_lang: str) -> str:
         """Dịch sử dụng Google Translate API free"""
         try:
-            # Detect source language
-            detected = self.google_translator.detect(text)
-            source_lang = detected.lang if detected else 'auto'
-
-            result = self.google_translator.translate(text, src=source_lang, dest=target_lang)
-            translated_text = result.text
+            # Use auto detection for source language
+            translator = self.google_translator(source='auto', target=target_lang)
+            translated_text = translator.translate(text)
 
             logger.info("Dịch thành công với Google Translate Free")
             return translated_text
