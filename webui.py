@@ -14,15 +14,30 @@ from modules.text_to_speech import text_to_speech
 import logging
 
 # Ensure logging is configured for web UI
+log_file_name = os.getenv('LOG_FILENAME', 'webui_dubbing.log') # Default if not set
+log_file_path = Path(settings.LOG_DIR) / log_file_name
+handlers = [logging.StreamHandler(sys.stdout)] # Explicitly log to stdout for console output
+
+try:
+    # Ensure the log directory exists
+    log_file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
+    handlers.append(file_handler)
+except (IOError, OSError) as e:
+    sys.stderr.write(f"WARNING: Could not set up file logger at {log_file_path}: {e}\n")
+    sys.stderr.write("WARNING: Logging will proceed to console only.\n")
+
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=handlers
 )
 
 logger = logging.getLogger(__name__)
 
 logger.info("Web UI started - testing logging")
 print("=== WEB UI LOG TEST ===")
+
 
 # Khởi tạo dubbing instance
 dubbing = VietnameseAIDubbing()

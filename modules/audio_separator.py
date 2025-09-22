@@ -7,6 +7,7 @@ import logging
 import torch
 import gc
 import time
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +141,6 @@ class AudioSeparator:
                 instruments = instruments.numpy().T
             else:
                 # Fallback: create silent background
-                import numpy as np
                 instruments = np.zeros_like(vocals)
 
             # Save WAV files

@@ -22,13 +22,23 @@ from modules.text_to_speech import text_to_speech
 from modules.video_processor import video_processor
 
 # Setup logging
+log_file_path = Path(settings.LOG_DIR) / 'vietnamese_dubbing.log'
+handlers = [logging.StreamHandler(sys.stdout)]
+
+try:
+    # Ensure the log directory exists
+    log_file_path.parent.mkdir(parents=True, exist_ok=True)
+    file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
+    handlers.append(file_handler)
+except (IOError, OSError) as e:
+    # Log an error to the console if file logging fails
+    sys.stderr.write(f"WARNING: Could not set up file logger at {log_file_path}: {e}\n")
+    sys.stderr.write("WARNING: Logging will proceed to console only.\n")
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler(Path(settings.LOG_DIR) / 'vietnamese_dubbing.log')
-    ]
+    handlers=handlers
 )
 logger = logging.getLogger(__name__)
 

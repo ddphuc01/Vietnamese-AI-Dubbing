@@ -68,7 +68,12 @@ class VideoProcessor:
             if output_filename is None:
                 base_name = Path(video_path).stem
                 output_filename = f"{base_name}_vietnamese_dubbed.mp4"
-                logger.info(f"Generated output filename: {output_filename}")
+                logger.info(f"Generated default output filename: {output_filename}")
+            else:
+                # Ensure custom output_filename has .mp4 extension
+                if not output_filename.lower().endswith(".mp4"):
+                    output_filename += ".mp4"
+                logger.info(f"Using custom output filename: {output_filename}")
 
             output_path = self.output_dir / output_filename
             logger.info(f"Output path: {output_path}")
