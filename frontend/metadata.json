@@ -1,0 +1,5 @@
+{
+  "name": "Vietnamese AI Dubbing",
+  "description": "An AI-powered tool to automatically dub videos into Vietnamese. Upload a video or provide a URL, and the tool will handle audio separation, transcription, translation, text-to-speech, and video reprocessing to deliver a fully dubbed video.",
+  "requestFramePermissions": []
+}
