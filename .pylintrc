@@ -1,0 +1,112 @@
+[MASTER]
+# Use multiple processes to speed up Pylint
+jobs=0
+
+# Python code to execute, usually for sys.path manipulation
+init-hook='import sys; sys.path.append(".")'
+
+[MESSAGES CONTROL]
+# Disable some pylint messages
+disable=
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
+    too-many-instance-attributes,
+    line-too-long,
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    invalid-name,
+    fixme,
+    broad-except,
+    logging-fstring-interpolation,
+    consider-using-f-string
+
+[REPORTS]
+# Set the output format
+output-format=colorized
+
+# Include message's id in output
+include-ids=yes
+
+# Template used to display messages
+msg-template='{path}:{line}:{column}: [{msg_id}({symbol}), {obj}] {msg}'
+
+[BASIC]
+# Naming style matching
+good-names=i,j,k,ex,Run,_,id,db,ip,fn,fp,tp,tn
+
+# Regular expression matching correct function names
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression matching correct variable names
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression matching correct constant names
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+
+# Regular expression matching correct method names
+method-rgx=[a-z_][a-z0-9_]{2,30}$
+
+# Regular expression matching correct class names
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=88
+
+# String used as indentation unit
+indent-string='    '
+
+[SIMILARITIES]
+# Minimum lines number of a similarity
+min-similarity-lines=6
+
+# Ignore comments when computing similarities
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities
+ignore-imports=yes
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=8
+
+# Maximum number of locals for function / method body
+max-locals=20
+
+# Maximum number of return / yield for function / method body
+max-returns=8
+
+# Maximum number of branch for function / method body
+max-branches=15
+
+# Maximum number of statements in function / method body
+max-statements=50
+
+[IMPORTS]
+# Allow wildcard imports from these modules
+allow-wildcard-with-all=no
+
+[TYPECHECK]
+# List of decorators that produce context managers
+contextmanager-decorators=contextlib.contextmanager
+
+# List of members which are set dynamically and missed by pylint inference
+generated-members=REQUEST,acl_users,aq_parent,objects,DoesNotExist,id,pk,_meta,base_fields
+
+[VARIABLES]
+# A regular expression matching the name of dummy variables
+dummy-variables-rgx=_+$|(_[a-zA-Z0-9_]*[a-zA-Z0-9]+?$)|dummy|^ignored_|^unused_
+
+# Argument names that match this expression will be ignored
+ignored-argument-names=_.*|^ignored_|^unused_
+
+[STRING]
+# This flag controls whether inconsistent-quotes generates a warning
+check-quote-consistency=yes

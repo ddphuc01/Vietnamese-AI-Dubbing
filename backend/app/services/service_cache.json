@@ -1,0 +1,239 @@
+{
+  "metadata": {
+    "created_at": "2025-09-22T06:36:33.966Z",
+    "last_updated": "2025-09-22T06:40:09.019Z",
+    "version": "1.0.0",
+    "description": "Cache file chứa thông tin về tất cả các service đã tạo trong Vietnamese AI Dubbing project"
+  },
+  "services": {
+    "video_downloader": {
+      "name": "VideoDownloaderService",
+      "description": "Service xử lý việc tải video từ YouTube, URL, hoặc upload file",
+      "status": "completed",
+      "created_at": "2025-09-22T06:20:00.000Z",
+      "file_path": "backend/app/services/video_downloader/service.py",
+      "features": [
+        "Download từ YouTube với chất lượng tùy chọn",
+        "Download từ URL trực tiếp",
+        "Xử lý file upload",
+        "Validate video files",
+        "Tích hợp với yt-dlp"
+      ],
+      "dependencies": [
+        "yt-dlp",
+        "requests",
+        "pathlib",
+        "asyncio"
+      ],
+      "methods": [
+        "download_from_youtube",
+        "download_from_url",
+        "save_uploaded_file",
+        "validate_video_file",
+        "get_video_info",
+        "cleanup_temp_files"
+      ]
+    },
+    "audio_separator": {
+      "name": "AudioSeparatorService",
+      "description": "Service xử lý việc tách audio thành vocals và background music",
+      "status": "completed",
+      "created_at": "2025-09-22T06:25:00.000Z",
+      "file_path": "backend/app/services/audio_separator/service.py",
+      "features": [
+        "Sử dụng Demucs để tách audio",
+        "Hỗ trợ multiple models (htdemucs_ft, htdemucs, etc.)",
+        "Tạo mock files khi cần thiết",
+        "Validate audio files",
+        "Cleanup temporary files"
+      ],
+      "dependencies": [
+        "demucs",
+        "subprocess",
+        "asyncio",
+        "pathlib"
+      ],
+      "methods": [
+        "extract_vocals",
+        "get_audio_info",
+        "validate_audio_file",
+        "cleanup_temp_files",
+        "check_model_availability"
+      ]
+    },
+    "speech_recognition": {
+      "name": "SpeechRecognitionService",
+      "description": "Service xử lý việc nhận dạng giọng nói từ audio",
+      "status": "completed",
+      "created_at": "2025-09-22T06:29:00.000Z",
+      "file_path": "backend/app/services/speech_recognition/service.py",
+      "features": [
+        "Hỗ trợ Whisper và WhisperX",
+        "Speaker diarization",
+        "Multiple model sizes (tiny, base, small, medium, large)",
+        "Fallback mechanism",
+        "Language detection"
+      ],
+      "dependencies": [
+        "whisper",
+        "whisperx",
+        "torch",
+        "asyncio"
+      ],
+      "methods": [
+        "transcribe_audio",
+        "transcribe_with_fallback",
+        "get_audio_info",
+        "validate_audio_file",
+        "get_supported_models",
+        "check_model_availability"
+      ]
+    },
+    "translation": {
+      "name": "TranslationService",
+      "description": "Service xử lý việc dịch text từ ngôn ngữ này sang ngôn ngữ khác",
+      "status": "completed",
+      "created_at": "2025-09-22T06:29:52.000Z",
+      "file_path": "backend/app/services/translation/service.py",
+      "features": [
+        "Google Translate API",
+        "Azure Translator",
+        "AWS Translate",
+        "Local MarianMT models",
+        "Fallback mechanism",
+        "100+ ngôn ngữ hỗ trợ"
+      ],
+      "dependencies": [
+        "googletrans",
+        "azure-ai-texttranslate",
+        "boto3",
+        "transformers",
+        "torch"
+      ],
+      "methods": [
+        "translate_segments",
+        "translate_with_fallback",
+        "translate_text",
+        "get_supported_languages",
+        "check_service_availability"
+      ]
+    },
+    "text_to_speech": {
+      "name": "TextToSpeechService",
+      "description": "Service xử lý việc chuyển đổi text thành audio",
+      "status": "completed",
+      "created_at": "2025-09-22T06:31:03.000Z",
+      "file_path": "backend/app/services/text_to_speech/service.py",
+      "features": [
+        "Google Text-to-Speech",
+        "pyttsx3 (offline)",
+        "Azure Cognitive Services",
+        "AWS Polly",
+        "ElevenLabs",
+        "Multiple voice options",
+        "Speed và volume control"
+      ],
+      "dependencies": [
+        "gtts",
+        "pyttsx3",
+        "azure-cognitiveservices-speech",
+        "boto3",
+        "requests"
+      ],
+      "methods": [
+        "text_to_speech",
+        "create_audio_from_segments",
+        "get_supported_voices",
+        "check_engine_availability"
+      ]
+    },
+    "video_synthesis": {
+      "name": "VideoSynthesisService",
+      "description": "Service xử lý việc tổng hợp video từ các thành phần",
+      "status": "completed",
+      "created_at": "2025-09-22T06:32:27.000Z",
+      "file_path": "backend/app/services/video_synthesis/service.py",
+      "features": [
+        "Kết hợp video với audio tiếng Việt",
+        "Thêm subtitle vào video",
+        "Tạo subtitle files (SRT, VTT, ASS)",
+        "Tách audio từ video",
+        "Volume mixing",
+        "FFmpeg integration"
+      ],
+      "dependencies": [
+        "ffmpeg-python",
+        "subprocess",
+        "asyncio",
+        "pathlib"
+      ],
+      "methods": [
+        "combine_audio_video",
+        "create_subtitle_file",
+        "extract_audio_from_video",
+        "validate_video_file",
+        "check_ffmpeg_availability"
+      ]
+    },
+    "main_service": {
+      "name": "MainService",
+      "description": "Service chính điều phối tất cả các service modules",
+      "status": "completed",
+      "created_at": "2025-09-22T06:38:33.000Z",
+      "file_path": "backend/app/services/main_service.py",
+      "features": [
+        "Orchestrate tất cả service modules",
+        "Xử lý quy trình dubbing hoàn chỉnh",
+        "Progress tracking và callback",
+        "Health check cho toàn bộ hệ thống",
+        "Service status monitoring",
+        "System information gathering",
+        "Cache management",
+        "Error handling và recovery"
+      ],
+      "dependencies": [
+        "asyncio",
+        "pathlib",
+        "json",
+        "datetime"
+      ],
+      "methods": [
+        "process_video_dubbing",
+        "get_service_status",
+        "get_processing_options",
+        "get_system_info",
+        "health_check",
+        "export_service_cache",
+        "update_service_cache"
+      ]
+    }
+  },
+  "architecture": {
+    "pattern": "Service Layer Pattern",
+    "description": "Kiến trúc microservices với các service độc lập",
+    "benefits": [
+      "Modularity: Mỗi service độc lập, dễ maintain và test",
+      "Scalability: Có thể scale từng service riêng biệt",
+      "Reusability: Services có thể được sử dụng ở nhiều nơi",
+      "Error Handling: Centralized error handling",
+      "Logging: Structured logging với context",
+      "Configuration: Flexible configuration management",
+      "Fallback Mechanisms: Robust error recovery",
+      "Async Support: Non-blocking I/O operations"
+    ]
+  },
+  "next_steps": [
+    "Cập nhật API endpoints để sử dụng các service mới",
+    "Tạo frontend components tương ứng với các service",
+    "Test và debug các service",
+    "Tối ưu hóa performance",
+    "Tích hợp MainService với API endpoints",
+    "Tạo documentation cho tất cả services"
+  ],
+  "project_status": {
+    "phase": "Service Development",
+    "completed_tasks": 4,
+    "total_tasks": 8,
+    "progress_percentage": 50.0
+  }
+}
